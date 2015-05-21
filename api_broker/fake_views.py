@@ -1,7 +1,7 @@
 # coding: utf-8
 import datetime
 
-from django.utils.decorators import method_decorator
+from rest_framework.generics import RetrieveAPIView, ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
@@ -373,3 +373,346 @@ class EnrollmentListView(APIView, ApiKeyPermissionMixIn):
         mode = request.DATA.get('mode', 'honor')
 
         return Response(fake_add_enrollment(username, unicode(course_id), mode))
+
+
+class CourseViewMixin(object):
+    pass
+
+
+class CourseList(CourseViewMixin, ListAPIView):
+    """
+        **Варианты использования**
+
+            Получить список всех курсов на платформе; список разбит на части по 10 курсов в каждой.
+
+            Получить информацию о курсах с заданными ID.
+
+        **Примеры запросов**
+
+            GET /api/course_structure/v1/courses/
+
+            GET /api/course_structure/v1/courses/?course_id={course_id1},{course_id2}
+
+
+        **Поля ответа**
+
+            * count: Количество курсов на платформе (всего курсов).
+
+            * next: Адрес (URI) следующей страницы с курсами.
+
+            * previous: Адрес (URI) предыдущей страницы курсов
+
+            * num_pages: Количество страниц.
+
+            * results: Список курсов, описание каждого из которого включает.
+
+                * id: Уникальный идентификатор курса.
+
+                * name: Название курса.
+
+                * category: Тип контента, в данном случае “course”.
+
+                * org: Организация (университет-участник), добавившая курс.
+
+                * run: Идентификатор сессии курса.
+
+                * course: Номер курса (в кодировании университета-участника).
+
+                * uri: Адрес для получения деталей курса.
+
+                * image_url: Адрес изображения-обложки курса.
+
+                * start: Дата и время начала курса.
+
+                * end: Дата и время окончания, если не определена то NULL.
+
+    """
+    # paginate_by = 10
+    # paginate_by_param = 'page_size'
+    # pagination_serializer_class = PaginationSerializer
+    # serializer_class = serializers.CourseSerializer
+
+    def get(self, request):
+        course_ids = self.request.QUERY_PARAMS.get('course_id', None)
+        if not course_ids:
+            result = {
+                "count": 2,
+                "next": "https://courses.edx.org/api/course_structure/v0/courses/?page=3",
+                "previous": "https://courses.edx.org/api/course_structure/v0/courses/?page=1",
+                "num_pages": 1,
+                "results": [
+                    {
+                        "id": "ANUx/ANU-ASTRO1x/1T2014",
+                        "name": "Greatest Unsolved Mysteries of the Universe",
+                        "category": "course",
+                        "org": "ANUx",
+                        "run": "1T2014",
+                        "course": "ANU-ASTRO1x",
+                        "uri": "https://courses.edx.org/api/course_structure/v0/courses/ANUx/ANU-ASTRO1x/1T2014/",
+                        "image_url": "/c4x/ANUx/ANU-ASTRO1x/asset/dome_dashboard.jpg",
+                        "start": "2014-03-24T18:30:00Z",
+                        "end": None
+                    },
+                    {
+                        "id": "ANUx/ANU-ASTRO4x/1T2015",
+                        "name": "COSMOLOGY",
+                        "category": "course",
+                        "org": "ANUx",
+                        "run": "1T2015",
+                        "course": "ANU-ASTRO4x",
+                        "uri": "https://courses.edx.org/api/course_structure/v0/courses/ANUx/ANU-ASTRO4x/1T2015/",
+                        "image_url": "/c4x/ANUx/ANU-ASTRO4x/asset/ASTRO4x_dashboard_image.jpeg",
+                        "start": "2015-02-03T00:00:00Z",
+                        "end": "2015-04-28T23:30:00Z"
+                    }
+                ]
+            }
+        return Response(result)
+
+    # def get_queryset(self):
+    #     course_ids = self.request.QUERY_PARAMS.get('course_id', None)
+    #
+    #     results = []
+    #     if course_ids:
+    #         course_ids = course_ids.split(',')
+    #         for course_id in course_ids:
+    #             # course_key = CourseKey.from_string(course_id)
+    #             # course_descriptor = courses.get_course(course_key)
+    #             results.append(course_descriptor)
+    #     else:
+    #         results = modulestore().get_courses()
+    #
+    #     # Ensure only course descriptors are returned.
+    #     results = (course for course in results if course.scope_ids.block_type == 'course')
+    #
+    #     # Ensure only courses accessible by the user are returned.
+    #     results = (course for course in results if self.user_can_access_course(self.request.user, course))
+    #
+    #     # Sort the results in a predictable manner.
+    #     return sorted(results, key=lambda course: unicode(course.id))
+
+
+class CourseDetail(CourseViewMixin, APIView):
+    """
+        **Вариант использования**
+
+            Получить информацию о курсе по его ID.
+
+        **Примеры запросов**
+
+            GET /api/course_structure/v1/courses/{course_id}/
+
+
+        ** Внимание!!!**
+
+            Есть изменения по отношению к API Open edX!
+
+            Для этого метода данные предоставляет модуль PLP (каталог курсов)
+
+        **Поля ответа**
+
+            * id: Уникальный идентификатор курса.
+
+            * name: Название курса.
+
+            * category: Тип контента, в данном случае “course”.
+
+            * org: Организация (университет-участник), добавившая курс.
+
+            * run: Идентификатор сессии курса.
+
+            * course: Номер курса (в кодировании университета-участника).
+
+            * uri: Адрес для получения деталей курса.
+
+            * image_url: Адрес изображения-обложки курса.
+
+            * prerequisites: Требования к начальному уровню знаний
+
+            * areas: Предполагаемые целевые УГСН
+
+            * competencies: Компетенции, на получение которых рассчитан курс.
+
+            * learn_results: Планируемые результаты обучения.
+
+            * start: Дата и время начала курса.
+
+            * end: Дата и время окончания, если не определена то NULL.
+    """
+    # serializer_class = serializers.CourseSerializer
+
+    def get(self, request, course_id=None):
+        if course_id:
+            result = {
+                "id": course_id,
+                "name": "Greatest Unsolved Mysteries of the Universe",
+                "category": "course",
+                "org": "ANUx",
+                "run": "1T2014",
+                "course": "ANU-ASTRO1x",
+                "uri": "https://courses.edx.org/api/course_structure/v0/courses/ANUx/ANU-ASTRO1x/1T2014/",
+                "image_url": "/c4x/ANUx/ANU-ASTRO1x/asset/dome_dashboard.jpg",
+                "prerequisites": u'Требования к начальному уровню знаний',
+                "areas": u'Предполагаемые целевые УГСН',
+                "competencies": u'Компетенции, на получение которых рассчитан курс',
+                "learn_results": u'Планируемые результаты обучения',
+                "start": "2014-03-24T18:30:00Z",
+                "end": None
+            }
+        else:
+            return Response(status.HTTP_200_OK)
+        return Response(result)
+
+
+class CourseStructure(CourseViewMixin, RetrieveAPIView):
+    """
+        **Варианты использования**
+
+            Возвращает структуру курса и список его содержимого,
+            который доступен пользователю на текущем этапе обучения.
+
+        **Примеры запросов**
+
+            GET /api/course_structure/v1/course_structures/{course_id}/
+
+        **Поля ответа**
+
+            * root: Идентификатор корневого элемента.
+
+            * blocks: Список элементов курса, описание каждого из которого включает:
+
+            * id: Идентификатор элемента.
+
+            * type: Тип блока, возможные варианты: sequential, vertical, html, problem, video, и discussion.
+            Кроме того, может быть использован тип блока, который создан автором курса при добавлении курса.
+
+            * display_name: Название элемента.
+
+            * graded: Оценивается ли этот блок (булево).
+
+            * format: Тип задания (если graded == false, то null).
+
+            * children: Если у элемента есть потомки, то список идентификаторов элементов-потомков.
+    """
+
+    def get(self, request, **kwargs):
+        result = {
+            "root": "i4x://ANUx/ANU-INDIA1x/course/1T2014",
+            "blocks": {
+                "i4x://ANUx/ANU-INDIA1x/html/834f845ae8b944f1882f14ce6417c9d1": {
+                    "id": "i4x://ANUx/ANU-INDIA1x/html/834f845ae8b944f1882f14ce6417c9d1",
+                    "type": "html",
+                    "display_name": "",
+                    "graded": False,
+                    "format": None,
+                    "children": []
+                },
+                "i4x://ANUx/ANU-INDIA1x/html/c3493aaebaba4ab6a0499fbc27ac3b0e": {
+                    "id": "i4x://ANUx/ANU-INDIA1x/html/c3493aaebaba4ab6a0499fbc27ac3b0e",
+                    "type": "problem",
+                    "display_name": "Check your learning - Part 1",
+                    "graded": True,
+                    "format": None,
+                    "children": []
+                },
+                "i4x://ANUx/ANU-INDIA1x/sequential/3731eee6a39c473c98ef6a5c3f56c04c": {
+                    "id": "i4x://ANUx/ANU-INDIA1x/sequential/3731eee6a39c473c98ef6a5c3f56c04c",
+                    "type": "sequential",
+                    "display_name": "Reflective project",
+                    "graded": True,
+                    "format": "Reflective Project",
+                    "children": [
+                        "i4x://ANUx/ANU-INDIA1x/vertical/efe3f47a5bc24894b726c229d6bf5968",
+                        "i4x://ANUx/ANU-INDIA1x/vertical/9106a1b1fad040858bad56fe5d48074e",
+                        "i4x://ANUx/ANU-INDIA1x/vertical/27d2cf635bd44038a1207461b761a63a",
+                        "i4x://ANUx/ANU-INDIA1x/vertical/94b719b765b046e2a811f1c4e4f84e5b"
+                    ]
+                },
+                "i4x://ANUx/ANU-INDIA1x/vertical/0a3cd583cb1d4108bfbdaf57c511da3a": {
+                    "id": "i4x://ANUx/ANU-INDIA1x/vertical/0a3cd583cb1d4108bfbdaf57c511da3a",
+                    "type": "vertical",
+                    "display_name": "What you need to do this week",
+                    "graded": False,
+                    "format": None,
+                    "children": [
+                        "i4x://ANUx/ANU-INDIA1x/html/a20abbba4a0f4a578d96cbdd4b34307b"
+                    ]
+                },
+            }
+        }
+        return Response(result)
+        # try:
+        #     return Response(api.course_structure(self.course_key))
+        # except CourseStructureNotAvailableError:
+        #     # If we don't have data stored, we will try to regenerate it, so
+        #     # return a 503 and as them to retry in 2 minutes.
+        #     return Response(status=503, headers={'Retry-After': '120'})
+
+
+class CourseGradingPolicy(CourseViewMixin, ListAPIView):
+    """
+        **Варианты использования**
+
+            Получить политику оценивания курса
+
+            Возвращает типы тестовых заданий, их вклад в общую оценку и их дополнительные параметры для заданного курса.
+
+        **Примеры запросов**
+
+            GET /api/course_structure/v1/grading_policies/{course_id}/
+
+        **Поля ответа**
+
+            Список значений, содержащих следующие поля:
+
+            * assignment_type: Тип задания в виде, который определил автор курса, например,
+            “домашнее задание”, “опрос”, “финальный экзамен”.
+
+            * count: Количество возможных попыток для прохождения задания данного типа.
+
+            * dropped: Количество худших попыток, отбрасываемых для заданий данного типа.
+
+            * weight:  Вес результата заданий данного типа в общей оценке пользователя.
+    """
+
+    allow_empty = False
+
+    def get(self, request, **kwargs):
+
+        result = [
+            {
+                "assignment_type": "Week 1 Survey",
+                "count": 2,
+                "dropped": 1,
+                "weight": 0.03
+            },
+            {
+                "assignment_type": "Week 5 Survey",
+                "count": 2,
+                "dropped": 1,
+                "weight": 0.03
+            },
+            {
+                "assignment_type": "Reflective Project",
+                "count": 1,
+                "dropped": 0,
+                "weight": 0.2
+            },
+        ]
+
+        return Response(result)
+        # return Response(api.course_grading_policy(self.course_key))
+
+"""
+Получить обновления  курса
+GET /api/course_structure/v1/updates/{course_id}/
+Возвращает блоки курса, которые стали доступны после последнего вызова метода.
+Поля ответа
+·         root: Идентификатор корневого элемента.
+id: Идентификатор элемента.
+type: Тип блока, возможные варианты: sequential, vertical, html, problem, video, и discussion. Кроме того, может быть использован тип блока, который создан автором курса при добавлении курса.
+display_name: Название элемента.
+graded: Оценивается ли этот блок (булево).
+format: Тип задания (если graded == false, то null).
+children: Если у элемента есть потомки, то список идентификаторов элементов-потомков.
+"""
