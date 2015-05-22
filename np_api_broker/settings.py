@@ -41,6 +41,7 @@ INSTALLED_APPS = (
     'api_broker',
 
     'rest_framework',
+    'rest_framework_swagger',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -108,7 +109,6 @@ STATIC_ROOT = 'staticfiles'
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, "static"),
     '/usr/local/lib/python2.7/dist-packages/rest_framework/static',
 )
 
@@ -121,5 +121,6 @@ REST_FRAMEWORK = {
         'rest_framework.parsers.JSONParser',
     )
 }
-UNICODE_JSON=True
+UNICODE_JSON = True
+
 

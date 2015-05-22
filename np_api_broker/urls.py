@@ -21,5 +21,6 @@ from django.conf.urls.static import static
 urlpatterns = [
     url(r'^', include('api_broker.urls')),
     url(r'^admin/', include(admin.site.urls)),
+    url(r'^docs/', include('rest_framework_swagger.urls')),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 

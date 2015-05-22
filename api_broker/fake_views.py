@@ -4,6 +4,7 @@ import datetime
 from rest_framework.generics import RetrieveAPIView, ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework import serializers
 from rest_framework import status
 
 
@@ -379,7 +380,7 @@ class CourseViewMixin(object):
     pass
 
 
-class CourseList(CourseViewMixin, ListAPIView):
+class CourseList(CourseViewMixin, APIView):
     """
         **Варианты использования**
 
@@ -431,6 +432,7 @@ class CourseList(CourseViewMixin, ListAPIView):
     # paginate_by_param = 'page_size'
     # pagination_serializer_class = PaginationSerializer
     # serializer_class = serializers.CourseSerializer
+
 
     def get(self, request):
         course_ids = self.request.QUERY_PARAMS.get('course_id', None)
@@ -564,7 +566,7 @@ class CourseDetail(CourseViewMixin, APIView):
         return Response(result)
 
 
-class CourseStructure(CourseViewMixin, RetrieveAPIView):
+class CourseStructure(CourseViewMixin, APIView):
     """
         **Варианты использования**
 
@@ -649,7 +651,7 @@ class CourseStructure(CourseViewMixin, RetrieveAPIView):
         #     return Response(status=503, headers={'Retry-After': '120'})
 
 
-class CourseGradingPolicy(CourseViewMixin, ListAPIView):
+class CourseGradingPolicy(CourseViewMixin, APIView):
     """
         **Варианты использования**
 
