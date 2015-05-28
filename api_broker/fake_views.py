@@ -435,6 +435,16 @@ class CourseList(CourseViewMixin, APIView):
 
 
     def get(self, request):
+        import requests
+        from django.conf import settings
+        requests.post('http://edx.mipt.ru/oauth2/access_token/')
+        result = requests.get(
+            '{0}/api/course_structure/v0/courses/?{1}'.format(
+                settings.PLATFORM_URL,
+                '9e819bf8d746ea95a136'
+            ),
+        )
+        return Response(result)
         course_ids = self.request.QUERY_PARAMS.get('course_id', None)
         if not course_ids:
             result = {

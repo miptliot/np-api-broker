@@ -13,4 +13,9 @@ from django.core.wsgi import get_wsgi_application
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "np_api_broker.settings")
 
+from django.conf import settings
+from np_external_auth import settings as auth_settings
+
+auth_settings.apply_settings(settings.NP_EXTERNAL_AUTH, settings)
+
 application = get_wsgi_application()

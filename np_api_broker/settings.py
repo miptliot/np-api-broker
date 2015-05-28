@@ -57,10 +57,17 @@ MIDDLEWARE_CLASSES = (
 
 ROOT_URLCONF = 'np_api_broker.urls'
 
+SETTINGS_PATH = os.path.dirname(__file__)
+PROJECT_PATH = os.path.join(SETTINGS_PATH, os.pardir)
+PROJECT_PATH = os.path.abspath(PROJECT_PATH)
+TEMPLATES_PATH = os.path.join(PROJECT_PATH, "np_api_broker/templates")
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            TEMPLATES_PATH,
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -100,6 +107,10 @@ USE_L10N = True
 
 USE_TZ = True
 
+NP_EXTERNAL_AUTH = {
+    'LIOT': {}
+}
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
@@ -107,10 +118,6 @@ USE_TZ = True
 STATIC_ROOT = 'staticfiles'
 
 STATIC_URL = '/static/'
-
-STATICFILES_DIRS = (
-    '/usr/local/lib/python2.7/dist-packages/rest_framework/static',
-)
 
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': (
@@ -121,6 +128,7 @@ REST_FRAMEWORK = {
         'rest_framework.parsers.JSONParser',
     )
 }
+
 UNICODE_JSON = True
 
-
+PLATFORM_URL = 'https://edx.mipt.ru'
