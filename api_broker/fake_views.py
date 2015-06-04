@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import serializers
 from rest_framework import status
+import json
 
 
 class AccountView(APIView):
@@ -241,7 +242,16 @@ class EnrollmentCourseDetailView(APIView, ApiKeyPermissionMixIn):
         #             ).format(course_id=course_id)
         #         }
         #     )
-        return Response(fake_course_details(course_id))
+        if course_id:
+            if course_id == 'MIPT/combinatorics/2015-01':
+                result = json.loads('{"course_end": "2015-05-01T00:00:00Z", "course_start": "2015-03-10T00:00:00Z", "course_modes": [{"slug": "honor", "name": "Honor Code Certificate", "min_price": 0, "suggested_prices": [], "currency": "usd", "expiration_datetime": null, "description": null, "sku": null}], "enrollment_start": "2015-03-01T00:00:00Z", "course_id": "MIPT/combinatorics/2015-01", "invite_only": false, "enrollment_end": "2015-05-01T00:00:00Z"}')
+            elif course_id == 'MiptX/biomodeling/2015_T1':
+                result = json.loads('{"course_end": null, "course_start": "2030-01-01T00:00:00Z", "course_modes": [{"slug": "honor", "name": "Honor Code Certificate", "min_price": 0, "suggested_prices": [], "currency": "usd", "expiration_datetime": null, "description": null, "sku": null}], "enrollment_start": null, "enrollment_end": null, "invite_only": false, "course_id": "MiptX/biomodeling/2015_T1"}')
+            elif course_id == 'edX/DemoX/Demo_Course':
+                result = json.loads('{"course_end": null, "course_start": "2013-02-05T05:00:00Z", "course_modes": [{"slug": "honor", "name": "Honor Code Certificate", "min_price": 0, "suggested_prices": [], "currency": "usd", "expiration_datetime": null, "description": null, "sku": null}], "enrollment_start": null, "enrollment_end": null, "invite_only": false, "course_id": "edX/DemoX/Demo_Course"}')
+            else:
+                result = json.loads('{"message": "No course found for course ID \'{}\'"}'.format(course_id))
+        return Response(result)
 
 
 def fake_enrollments_list(username):
@@ -435,50 +445,34 @@ class CourseList(CourseViewMixin, APIView):
 
 
     def get(self, request):
-        import requests
-        from django.conf import settings
-        requests.post('http://edx.mipt.ru/oauth2/access_token/')
-        result = requests.get(
-            '{0}/api/course_structure/v0/courses/?{1}'.format(
-                settings.PLATFORM_URL,
-                '9e819bf8d746ea95a136'
-            ),
-        )
-        return Response(result)
+        # from django.conf import settings
+        # from urllib import urlencode
+        # import rpdb; rpdb.set_trace()
+        # CLIENT_KEY = settings.API_SETTINGS['edX']['Client_id']
+        # CLIENT_SECRET = settings.API_SETTINGS['edX']['Client_secret']
+        # CALLBACK_URL = 'http://api.edx.mipt.ru/docs/'
+        #
+        # AUTHORIZE_URL = 'http://edx.mipt.ru/oauth2/authorize'
+        # ACCESS_TOKEN_URL = 'http://edx.mipt.ru/oauth2/access_token'
+        # API_URL = 'http://edx.mipt.ru/api/course_structure/v0/courses'
+        #
+        # auth_params = {
+        #     "client_id": CLIENT_KEY,
+        #     "client_secret": CLIENT_SECRET,
+        #     "redirect_uri": CALLBACK_URL,
+        # }
+        #
+        # url = "?".join([API_URL, urlencode(auth_params)])
+        # import requests
+        # resp = requests.get(url)
+        #
+        #
+        # return Response(resp)
+
         course_ids = self.request.QUERY_PARAMS.get('course_id', None)
         if not course_ids:
-            result = {
-                "count": 2,
-                "next": "https://courses.edx.org/api/course_structure/v0/courses/?page=3",
-                "previous": "https://courses.edx.org/api/course_structure/v0/courses/?page=1",
-                "num_pages": 1,
-                "results": [
-                    {
-                        "id": "ANUx/ANU-ASTRO1x/1T2014",
-                        "name": "Greatest Unsolved Mysteries of the Universe",
-                        "category": "course",
-                        "org": "ANUx",
-                        "run": "1T2014",
-                        "course": "ANU-ASTRO1x",
-                        "uri": "https://courses.edx.org/api/course_structure/v0/courses/ANUx/ANU-ASTRO1x/1T2014/",
-                        "image_url": "/c4x/ANUx/ANU-ASTRO1x/asset/dome_dashboard.jpg",
-                        "start": "2014-03-24T18:30:00Z",
-                        "end": None
-                    },
-                    {
-                        "id": "ANUx/ANU-ASTRO4x/1T2015",
-                        "name": "COSMOLOGY",
-                        "category": "course",
-                        "org": "ANUx",
-                        "run": "1T2015",
-                        "course": "ANU-ASTRO4x",
-                        "uri": "https://courses.edx.org/api/course_structure/v0/courses/ANUx/ANU-ASTRO4x/1T2015/",
-                        "image_url": "/c4x/ANUx/ANU-ASTRO4x/asset/ASTRO4x_dashboard_image.jpeg",
-                        "start": "2015-02-03T00:00:00Z",
-                        "end": "2015-04-28T23:30:00Z"
-                    }
-                ]
-            }
+            result = json.loads('{"count": 3, "next": null, "previous": null, "num_pages": 1, "results": [{"id": "MIPT/combinatorics/2015-01", "name": "\u041e\u0441\u043d\u043e\u0432\u044b \u043a\u043e\u043c\u0431\u0438\u043d\u0430\u0442\u043e\u0440\u0438\u043a\u0438 (Introduction to combinatorics)", "category": "course", "org": "MIPT", "run": "2015-01", "course": "combinatorics", "uri": "http://edx.mipt.ru/api/course_structure/v0/courses/MIPT/combinatorics/2015-01/", "image_url": "/c4x/MIPT/combinatorics/asset/domino-Depositphotos_23344972_s.png", "start": "2015-03-10T00:00:00Z", "end": "2015-05-01T00:00:00Z"}, {"id": "MiptX/biomodeling/2015_T1", "name": "\u041c\u043e\u0434\u0435\u043b\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u0435 \u0431\u0438\u043e\u043b\u043e\u0433\u0438\u0447\u0435\u0441\u043a\u0438\u0445 \u043c\u043e\u043b\u0435\u043a\u0443\u043b \u043d\u0430 GPU", "category": "course", "org": "MiptX", "run": "2015_T1", "course": "biomodeling", "uri": "http://edx.mipt.ru/api/course_structure/v0/courses/MiptX/biomodeling/2015_T1/", "image_url": "/c4x/MiptX/biomodeling/asset/HK97.png", "start": "2030-01-01T00:00:00Z", "end": null}, {"id": "edX/DemoX/Demo_Course", "name": "edX Demonstration Course", "category": "course", "org": "edX", "run": "Demo_Course", "course": "DemoX", "uri": "http://edx.mipt.ru/api/course_structure/v0/courses/edX/DemoX/Demo_Course/", "image_url": "/c4x/edX/DemoX/asset/images_course_image.jpg", "start": "2013-02-05T05:00:00Z", "end": null}]}')
+
         return Response(result)
 
     # def get_queryset(self):
@@ -555,22 +549,14 @@ class CourseDetail(CourseViewMixin, APIView):
 
     def get(self, request, course_id=None):
         if course_id:
-            result = {
-                "id": course_id,
-                "name": "Greatest Unsolved Mysteries of the Universe",
-                "category": "course",
-                "org": "ANUx",
-                "run": "1T2014",
-                "course": "ANU-ASTRO1x",
-                "uri": "https://courses.edx.org/api/course_structure/v0/courses/ANUx/ANU-ASTRO1x/1T2014/",
-                "image_url": "/c4x/ANUx/ANU-ASTRO1x/asset/dome_dashboard.jpg",
-                "prerequisites": u'Требования к начальному уровню знаний',
-                "areas": u'Предполагаемые целевые УГСН',
-                "competencies": u'Компетенции, на получение которых рассчитан курс',
-                "learn_results": u'Планируемые результаты обучения',
-                "start": "2014-03-24T18:30:00Z",
-                "end": None
-            }
+            if course_id == 'MIPT/combinatorics/2015-01':
+                result = json.loads('{"id": "MIPT/combinatorics/2015-01", "name": "\u041e\u0441\u043d\u043e\u0432\u044b \u043a\u043e\u043c\u0431\u0438\u043d\u0430\u0442\u043e\u0440\u0438\u043a\u0438 (Introduction to combinatorics)", "category": "course", "org": "MIPT", "run": "2015-01", "course": "combinatorics", "uri": "http://edx.mipt.ru/api/course_structure/v0/courses/MIPT/combinatorics/2015-01/", "image_url": "/c4x/MIPT/combinatorics/asset/domino-Depositphotos_23344972_s.png", "start": "2015-03-10T00:00:00Z", "end": "2015-05-01T00:00:00Z"}')
+            elif course_id == 'MiptX/biomodeling/2015_T1':
+                result = json.loads('{"id": "MiptX/biomodeling/2015_T1", "name": "\u041c\u043e\u0434\u0435\u043b\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u0435 \u0431\u0438\u043e\u043b\u043e\u0433\u0438\u0447\u0435\u0441\u043a\u0438\u0445 \u043c\u043e\u043b\u0435\u043a\u0443\u043b \u043d\u0430 GPU", "category": "course", "org": "MiptX", "run": "2015_T1", "course": "biomodeling", "uri": "http://edx.mipt.ru/api/course_structure/v0/courses/MiptX/biomodeling/2015_T1/", "image_url": "/c4x/MiptX/biomodeling/asset/HK97.png", "start": "2030-01-01T00:00:00Z", "end": null}')
+            elif course_id == 'edX/DemoX/Demo_Course':
+                result = json.loads('{"id": "edX/DemoX/Demo_Course", "name": "edX Demonstration Course", "category": "course", "org": "edX", "run": "Demo_Course", "course": "DemoX", "uri": "http://edx.mipt.ru/api/course_structure/v0/courses/edX/DemoX/Demo_Course/", "image_url": "/c4x/edX/DemoX/asset/images_course_image.jpg", "start": "2013-02-05T05:00:00Z", "end": null}')
+            else:
+                result = json.loads('{"detail": "Not found"}')
         else:
             return Response(status.HTTP_200_OK)
         return Response(result)
@@ -691,26 +677,7 @@ class CourseGradingPolicy(CourseViewMixin, APIView):
 
     def get(self, request, **kwargs):
 
-        result = [
-            {
-                "assignment_type": "Week 1 Survey",
-                "count": 2,
-                "dropped": 1,
-                "weight": 0.03
-            },
-            {
-                "assignment_type": "Week 5 Survey",
-                "count": 2,
-                "dropped": 1,
-                "weight": 0.03
-            },
-            {
-                "assignment_type": "Reflective Project",
-                "count": 1,
-                "dropped": 0,
-                "weight": 0.2
-            },
-        ]
+        result = json.loads('[{"assignment_type": "Homework", "count": 12, "dropped": 2, "weight": 0.15}, {"assignment_type": "Lab", "count": 12, "dropped": 2, "weight": 0.15}, {"assignment_type": "Midterm Exam", "count": 1, "dropped": 0, "weight": 0.3}, {"assignment_type": "Final Exam", "count": 1, "dropped": 0, "weight": 0.4}]')
 
         return Response(result)
         # return Response(api.course_grading_policy(self.course_key))

@@ -21,9 +21,12 @@ from . import views
 
 urlpatterns = [
     url(r'^$', views.index, name='index'),
+    url(r'^login$', views.login, name='login'),
     url(r'^', include('api_broker.urls')),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^docs/', include('rest_framework_swagger.urls')),
+    url(r'^callback/', include('rest_framework_swagger.urls')),
     url(r'^', include('np_external_auth.urls')),
+    url(r'^oauth2/', include('provider.oauth2.urls', namespace='oauth2')),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 

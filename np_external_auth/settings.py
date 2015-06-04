@@ -50,7 +50,7 @@ _FIELDS_STORED_IN_SESSION = ['auth_entry', 'next', 'enroll_course_id', 'email_op
 _MIDDLEWARE_CLASSES = (
     'np_external_auth.middleware.ExceptionMiddleware',
 )
-_SOCIAL_AUTH_LOGIN_REDIRECT_URL = '/dashboard'
+_SOCIAL_AUTH_LOGIN_REDIRECT_URL = '/docs'
 
 
 def _merge_auth_info(django_settings, auth_info):
@@ -80,7 +80,6 @@ def _set_global_settings(django_settings):
 
     # Register and configure python-social-auth with Django.
     django_settings.INSTALLED_APPS += (
-        'social.apps.django_app.default',
         'np_external_auth',
     )
 
@@ -110,9 +109,6 @@ def _set_global_settings(django_settings):
         'social.pipeline.social_auth.associate_user',
         'social.pipeline.social_auth.load_extra_data',
         'social.pipeline.user.user_details',
-        'np_external_auth.pipeline.set_logged_in_cookie',
-        'np_external_auth.pipeline.login_analytics',
-        'np_external_auth.pipeline.change_enrollment',
     )
 
     # We let the user specify their email address during signup.

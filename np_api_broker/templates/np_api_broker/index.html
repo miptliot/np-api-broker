@@ -4,6 +4,7 @@
       window.location.href = url;
     }
 </script>
+Welcome, {{ user }}
 <button type="submit" class="button button-primary" onclick="thirdPartySignin(event, '/auth/login/LIOT/?auth_entry=login')">
     Sign in with {{ np_external_auth }}
 </button>
